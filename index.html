@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Wumpus AI — Knowledge-Based Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/png" href="wumpusimage.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splash">
+        <div class="splash-grid-bg"></div>
+        <div class="splash-glow"></div>
+        <div class="splash-logo-mark">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="38" height="38" rx="9" stroke="#004a5a" stroke-width="1.5" />
+                <path d="M10 20 L20 10 L30 20 L20 30 Z" stroke="#00d4ff" stroke-width="1.5" fill="none" />
+                <circle cx="20" cy="20" r="3" fill="#00d4ff" />
+            </svg>
+        </div>
+        <div class="splash-title">WUMPUS AI</div>
+        <div class="splash-sub">Knowledge-Based Agent &middot; CS-301</div>
+        <div class="splash-bar">
+            <div class="splash-bar-fill"></div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app">
+
+        <header>
+            <div class="header-logo">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 10 L10 5 L15 10 L10 15 Z" stroke="#00d4ff" stroke-width="1.4" fill="none" />
+                    <circle cx="10" cy="10" r="2" fill="#00d4ff" />
+                </svg>
+            </div>
+            <div>
+                <div class="header-title">WUMPUS AI</div>
+                <div class="header-sub">Propositional Logic &middot; Resolution Refutation &middot; CNF Inference Engine
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="hbadge hbadge-cyan">AI Logic Agent</span>
+                <span class="hbadge hbadge-muted">CS-301</span>
+            </div>
+        </header>
+
+        <div class="layout">
+
+            <!-- LEFT PANEL -->
+            <div class="panel-left">
+
+                <div>
+                    <div class="panel-section-title">Environment Config</div>
+                    <div class="config-card">
+                        <div class="config-row">
+                            <span class="config-label">Rows</span>
+                            <input class="config-input" type="number" id="inp-rows" value="4" min="3" max="8">
+                        </div>
+                        <div class="config-row">
+                            <span class="config-label">Columns</span>
+                            <input class="config-input" type="number" id="inp-cols" value="4" min="3" max="8">
+                        </div>
+                        <div class="config-row">
+                            <span class="config-label">Pits</span>
+                            <input class="config-input" type="number" id="inp-pits" value="3" min="1" max="8">
+                        </div>
+                        <div class="speed-row">
+                            <span class="config-label" style="font-size:12px;color:var(--muted)">Auto-speed</span>
+                            <input type="range" id="inp-speed" min="200" max="2000" value="700" step="100">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="newEpisode()">New Episode</button>
+                    <button class="btn btn-secondary" id="btn-step" onclick="agentStep()" disabled>Step Agent</button>
+                    <button class="btn btn-secondary" id="btn-auto" onclick="toggleAuto()" disabled>Auto-Run</button>
+                    <button class="btn btn-danger" id="btn-reveal" onclick="revealAll()" disabled>Reveal All</button>
+                </div>
+
+                <div>
+                    <div class="panel-section-title">Legend</div>
+                    <div class="legend">
+                        <div class="legend-row">
+                            <div class="swatch" style="background:#001820;border:1.5px solid #004a5a"></div>
+                            Visited &mdash; percepts recorded
+                        </div>
+                        <div class="legend-row">
+                            <div class="swatch" style="background:#001a0e;border:1.5px solid #005c35"></div>
+                            Inferred Safe &mdash; logic proved
+                        </div>
+                        <div class="legend-row">
+                            <div class="swatch" style="background:#131828;border:1.5px solid #1e2840"></div>
+                            Unknown / Unvisited
+                        </div>
+                        <div class="legend-row">
+                            <div class="swatch" style="background:#1a0508;border:1.5px solid #8b0f1a"></div>
+                            Confirmed Danger
+                        </div>
+                        <div class="legend-row">
+                            <div class="swatch"
+                                style="background:transparent;border:2px solid var(--cyan);border-radius:5px"></div>
+                            Agent Position
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="panel-section-title">Active Percepts</div>
+                    <div class="percept-card">
+                        <div class="percept-tags" id="percept-tags">
+                            <span class="ptag ptag-n">No percepts yet</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- END LEFT -->
+
+            <!-- CENTER PANEL -->
+            <div class="panel-center">
+                <div id="status-bar">
+                    <span id="status-icon" class="status-dot"></span>
+                    <span id="status-text">Configure the environment and press "New Episode" to begin.</span>
+                </div>
+                <div id="grid-container">
+                    <table id="grid"></table>
+                </div>
+                <div class="grid-hint">
+                    Grid coordinates (row, col) &mdash; agent starts at bottom-left (R-1, 0)
+                </div>
+            </div>
+            <!-- END CENTER -->
+
+            <!-- RIGHT PANEL -->
+            <div class="panel-right">
+                <div>
+                    <div class="panel-section-title">Real-Time Metrics</div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Inference Steps</div>
+                            <div class="metric-value cyan" id="m-steps">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Cells Visited</div>
+                            <div class="metric-value" id="m-visited">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Safe Inferred</div>
+                            <div class="metric-value green" id="m-safe">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">KB Clauses</div>
+                            <div class="metric-value amber" id="m-clauses">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Dangers Found</div>
+                            <div class="metric-value red" id="m-dangers">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">CNF Resolutions</div>
+                            <div class="metric-value" id="m-cnf">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="kb-log-wrap">
+                    <div class="panel-section-title">KB / Inference Log</div>
+                    <div id="kb-log"></div>
+                </div>
+            </div>
+            <!-- END RIGHT -->
+
+        </div>
+    </div><!-- #app -->
+
+    <script src="agent.js"></script>
+</body>
+
+</html>
